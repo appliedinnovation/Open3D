@@ -142,60 +142,6 @@ CreateVertexAndImageVisibility(
 template <typename T>
 std::tuple<bool, T> QueryImageIntensity(
         const geometry::Image& img,
-        const Eigen::Vector3d& V,
-        const camera::PinholeCameraTrajectory& camera,
-        int camid,
-        int ch /*= -1*/,
-        int image_boundary_margin /*= 10*/) {
-    float u, v, depth;
-    std::tie(u, v, depth) = Project3DPointAndGetUVDepth(V, camera, camid);
-    if (img.TestImageBoundary(u, v, image_boundary_margin)) {
-        int u_round = int(round(u));
-        int v_round = int(round(v));
-        if (ch == -1) {
-            return std::make_tuple(true, *img.PointerAt<T>(u_round, v_round));
-        } else {
-            return std::make_tuple(true,
-                                   *img.PointerAt<T>(u_round, v_round, ch));
-        }
-    } else {
-        return std::make_tuple(false, 0);
-    }
-}
-
-// template <typename T>
-// std::tuple<bool, T> QueryImageIntensity(
-//         const geometry::Image& img,
-//         const ImageWarpingField& field,
-//         const Eigen::Vector3d& V,
-//         const camera::PinholeCameraTrajectory& camera,
-//         int camid,
-//         int ch /*= -1*/,
-//         int image_boundary_margin /*= 10*/) {
-//     float u, v, depth;
-//     std::tie(u, v, depth) = Project3DPointAndGetUVDepth(V, camera, camid);
-//     if (img.TestImageBoundary(u, v, image_boundary_margin)) {
-//         Eigen::Vector2d uv_shift = field.GetImageWarpingField(u, v);
-//         if (img.TestImageBoundary(uv_shift(0), uv_shift(1),
-//                                   image_boundary_margin)) {
-//             int u_shift = int(round(uv_shift(0)));
-//             int v_shift = int(round(uv_shift(1)));
-//             if (ch == -1) {
-//                 return std::make_tuple(true,
-//                                        *img.PointerAt<T>(u_shift, v_shift));
-//             } else {
-//                 return std::make_tuple(true,
-//                                        *img.PointerAt<T>(u_shift, v_shift,
-//                                        ch));
-//             }
-//         }
-//     }
-//     return std::make_tuple(false, 0);
-// }
-
-template <typename T>
-std::tuple<bool, T> QueryImageIntensity(
-        const geometry::Image& img,
         const utility::optional<ImageWarpingField>& optional_warping_field,
         const Eigen::Vector3d& V,
         const camera::PinholeCameraTrajectory& camera,
@@ -249,44 +195,17 @@ void SetProxyIntensityForVertex(
             int j = visibility_vertex_to_image[i][iter];
             float gray;
             bool valid = false;
-            std::tie(valid, gray) = QueryImageIntensity<float>(
-                    *images_gray[j], warping_fields.value()[j],
-                    mesh.vertices_[i], camera, j, -1, image_boundary_margin);
-            if (valid) {
-                sum += 1.0;
-                proxy_intensity[i] += gray;
+            if (warping_fields.has_value()) {
+                std::tie(valid, gray) = QueryImageIntensity<float>(
+                        *images_gray[j], warping_fields.value()[j],
+                        mesh.vertices_[i], camera, j, -1,
+                        image_boundary_margin);
+            } else {
+                std::tie(valid, gray) = QueryImageIntensity<float>(
+                        *images_gray[j], utility::nullopt, mesh.vertices_[i],
+                        camera, j, -1, image_boundary_margin);
             }
-        }
-        if (sum > 0) {
-            proxy_intensity[i] /= sum;
-        }
-    }
-}
 
-void SetProxyIntensityForVertex(
-        const geometry::TriangleMesh& mesh,
-        const std::vector<std::shared_ptr<geometry::Image>>& images_gray,
-        const camera::PinholeCameraTrajectory& camera,
-        const std::vector<std::vector<int>>& visibility_vertex_to_image,
-        std::vector<double>& proxy_intensity,
-        int image_boundary_margin) {
-    auto n_vertex = mesh.vertices_.size();
-    proxy_intensity.resize(n_vertex);
-
-#ifdef _OPENMP
-#pragma omp parallel for schedule(static)
-#endif
-    for (int i = 0; i < int(n_vertex); i++) {
-        proxy_intensity[i] = 0.0;
-        float sum = 0.0;
-        for (size_t iter = 0; iter < visibility_vertex_to_image[i].size();
-             iter++) {
-            int j = visibility_vertex_to_image[i][iter];
-            float gray;
-            bool valid = false;
-            std::tie(valid, gray) = QueryImageIntensity<float>(
-                    *images_gray[j], mesh.vertices_[i], camera, j, -1,
-                    image_boundary_margin);
             if (valid) {
                 sum += 1.0;
                 proxy_intensity[i] += gray;

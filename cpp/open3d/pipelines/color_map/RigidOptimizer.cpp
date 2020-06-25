@@ -58,9 +58,9 @@ void RigidOptimizer::Run(const RigidOptimizerOption& option) {
     std::vector<double> proxy_intensity;
     int total_num_ = 0;
     int n_camera = int(camera_trajectory_->parameters_.size());
-    SetProxyIntensityForVertex(*mesh_, images_gray_, *camera_trajectory_,
-                               visibility_vertex_to_image, proxy_intensity,
-                               option.image_boundary_margin_);
+    SetProxyIntensityForVertex(*mesh_, images_gray_, utility::nullopt,
+                               *camera_trajectory_, visibility_vertex_to_image,
+                               proxy_intensity, option.image_boundary_margin_);
     for (int itr = 0; itr < option.maximum_iteration_; itr++) {
         utility::LogDebug("[Iteration {:04d}] ", itr + 1);
         double residual = 0.0;
@@ -111,7 +111,8 @@ void RigidOptimizer::Run(const RigidOptimizerOption& option) {
         }
         utility::LogDebug("Residual error : {:.6f} (avg : {:.6f})", residual,
                           residual / total_num_);
-        SetProxyIntensityForVertex(*mesh_, images_gray_, *camera_trajectory_,
+        SetProxyIntensityForVertex(*mesh_, images_gray_, utility::nullopt,
+                                   *camera_trajectory_,
                                    visibility_vertex_to_image, proxy_intensity,
                                    option.image_boundary_margin_);
     }

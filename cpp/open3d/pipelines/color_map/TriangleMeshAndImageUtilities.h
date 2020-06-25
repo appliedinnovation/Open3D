@@ -65,15 +65,6 @@ CreateVertexAndImageVisibility(
 template <typename T>
 std::tuple<bool, T> QueryImageIntensity(
         const geometry::Image& img,
-        const Eigen::Vector3d& V,
-        const camera::PinholeCameraTrajectory& camera,
-        int camid,
-        int ch = -1,
-        int image_boundary_margin = 10);
-
-template <typename T>
-std::tuple<bool, T> QueryImageIntensity(
-        const geometry::Image& img,
         const utility::optional<ImageWarpingField>& optional_warping_field,
         const Eigen::Vector3d& V,
         const camera::PinholeCameraTrajectory& camera,
@@ -85,14 +76,6 @@ void SetProxyIntensityForVertex(
         const geometry::TriangleMesh& mesh,
         const std::vector<std::shared_ptr<geometry::Image>>& images_gray,
         const utility::optional<std::vector<ImageWarpingField>>& warping_fields,
-        const camera::PinholeCameraTrajectory& camera,
-        const std::vector<std::vector<int>>& visibility_vertex_to_image,
-        std::vector<double>& proxy_intensity,
-        int image_boundary_margin);
-
-void SetProxyIntensityForVertex(
-        const geometry::TriangleMesh& mesh,
-        const std::vector<std::shared_ptr<geometry::Image>>& images_gray,
         const camera::PinholeCameraTrajectory& camera,
         const std::vector<std::vector<int>>& visibility_vertex_to_image,
         std::vector<double>& proxy_intensity,
