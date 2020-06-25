@@ -24,7 +24,7 @@
 // IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#include "open3d/pipelines/color_map/TriangleMeshAndImageUtilities.h"
+#include "open3d/pipelines/color_map/ColorMapUtils.h"
 
 #include "open3d/camera/PinholeCameraTrajectory.h"
 #include "open3d/geometry/Image.h"

@@ -33,10 +33,10 @@
 #include "open3d/geometry/TriangleMesh.h"
 #include "open3d/io/ImageWarpingFieldIO.h"
 #include "open3d/io/PinholeCameraTrajectoryIO.h"
+#include "open3d/pipelines/color_map/ColorMapUtils.h"
 #include "open3d/pipelines/color_map/JacobianHelper.h"
 #include "open3d/pipelines/color_map/NonRigidOptimizer.h"
 #include "open3d/pipelines/color_map/RigidOptimizer.h"
-#include "open3d/pipelines/color_map/TriangleMeshAndImageUtilities.h"
 #include "open3d/utility/Console.h"
 #include "open3d/utility/Eigen.h"
 

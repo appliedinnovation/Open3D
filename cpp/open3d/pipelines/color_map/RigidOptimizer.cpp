@@ -27,10 +27,10 @@
 #include <memory>
 #include <vector>
 
+#include "open3d/pipelines/color_map/ColorMapUtils.h"
 #include "open3d/pipelines/color_map/ImageWarpingField.h"
 #include "open3d/pipelines/color_map/JacobianHelper.h"
 #include "open3d/pipelines/color_map/RigidOptimizer.h"
-#include "open3d/pipelines/color_map/TriangleMeshAndImageUtilities.h"
 #include "open3d/utility/Optional.h"
 
 namespace open3d {
