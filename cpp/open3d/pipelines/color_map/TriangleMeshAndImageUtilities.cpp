@@ -163,29 +163,63 @@ std::tuple<bool, T> QueryImageIntensity(
     }
 }
 
+// template <typename T>
+// std::tuple<bool, T> QueryImageIntensity(
+//         const geometry::Image& img,
+//         const ImageWarpingField& field,
+//         const Eigen::Vector3d& V,
+//         const camera::PinholeCameraTrajectory& camera,
+//         int camid,
+//         int ch /*= -1*/,
+//         int image_boundary_margin /*= 10*/) {
+//     float u, v, depth;
+//     std::tie(u, v, depth) = Project3DPointAndGetUVDepth(V, camera, camid);
+//     if (img.TestImageBoundary(u, v, image_boundary_margin)) {
+//         Eigen::Vector2d uv_shift = field.GetImageWarpingField(u, v);
+//         if (img.TestImageBoundary(uv_shift(0), uv_shift(1),
+//                                   image_boundary_margin)) {
+//             int u_shift = int(round(uv_shift(0)));
+//             int v_shift = int(round(uv_shift(1)));
+//             if (ch == -1) {
+//                 return std::make_tuple(true,
+//                                        *img.PointerAt<T>(u_shift, v_shift));
+//             } else {
+//                 return std::make_tuple(true,
+//                                        *img.PointerAt<T>(u_shift, v_shift,
+//                                        ch));
+//             }
+//         }
+//     }
+//     return std::make_tuple(false, 0);
+// }
+
 template <typename T>
 std::tuple<bool, T> QueryImageIntensity(
         const geometry::Image& img,
-        const ImageWarpingField& field,
+        const utility::optional<ImageWarpingField>& field,
         const Eigen::Vector3d& V,
         const camera::PinholeCameraTrajectory& camera,
         int camid,
-        int ch /*= -1*/,
-        int image_boundary_margin /*= 10*/) {
+        int ch,
+        int image_boundary_margin) {
     float u, v, depth;
     std::tie(u, v, depth) = Project3DPointAndGetUVDepth(V, camera, camid);
+    // TODO: check why we use the u, ve before warpping for TestImageBoundary.
     if (img.TestImageBoundary(u, v, image_boundary_margin)) {
-        Eigen::Vector2d uv_shift = field.GetImageWarpingField(u, v);
-        if (img.TestImageBoundary(uv_shift(0), uv_shift(1),
-                                  image_boundary_margin)) {
-            int u_shift = int(round(uv_shift(0)));
-            int v_shift = int(round(uv_shift(1)));
+        if (field.has_value()) {
+            Eigen::Vector2d uv_shift = field.value().GetImageWarpingField(u, v);
+            u = uv_shift(0);
+            v = uv_shift(1);
+        }
+        if (img.TestImageBoundary(u, v, image_boundary_margin)) {
+            int u_round = int(u);
+            int v_round = int(v);
             if (ch == -1) {
                 return std::make_tuple(true,
-                                       *img.PointerAt<T>(u_shift, v_shift));
+                                       *img.PointerAt<T>(u_round, v_round));
             } else {
                 return std::make_tuple(true,
-                                       *img.PointerAt<T>(u_shift, v_shift, ch));
+                                       *img.PointerAt<T>(u_round, v_round, ch));
             }
         }
     }
