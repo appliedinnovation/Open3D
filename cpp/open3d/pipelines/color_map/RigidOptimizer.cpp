@@ -27,9 +27,11 @@
 #include <memory>
 #include <vector>
 
+#include "open3d/pipelines/color_map/ImageWarpingField.h"
 #include "open3d/pipelines/color_map/JacobianHelper.h"
 #include "open3d/pipelines/color_map/RigidOptimizer.h"
 #include "open3d/pipelines/color_map/TriangleMeshAndImageUtilities.h"
+#include "open3d/utility/Optional.h"
 
 namespace open3d {
 namespace pipelines {
@@ -115,8 +117,8 @@ void RigidOptimizer::Run(const RigidOptimizerOption& option) {
     }
 
     utility::LogDebug("[ColorMapOptimization] :: Set Mesh Color");
-    SetGeometryColorAverage(*mesh_, images_color_, *camera_trajectory_,
-                            visibility_vertex_to_image,
+    SetGeometryColorAverage(*mesh_, images_color_, utility::nullopt,
+                            *camera_trajectory_, visibility_vertex_to_image,
                             option.image_boundary_margin_,
                             option.invisible_vertex_color_knn_);
 }

@@ -364,15 +364,27 @@ void SetGeometryColorAverage(
             int j = visibility_vertex_to_image[i][iter];
             unsigned char r_temp, g_temp, b_temp;
             bool valid = false;
-            std::tie(valid, r_temp) = QueryImageIntensity<unsigned char>(
-                    *images_color[j], warping_fields.value()[j],
-                    mesh.vertices_[i], camera, j, 0, image_boundary_margin);
-            std::tie(valid, g_temp) = QueryImageIntensity<unsigned char>(
-                    *images_color[j], warping_fields.value()[j],
-                    mesh.vertices_[i], camera, j, 1, image_boundary_margin);
-            std::tie(valid, b_temp) = QueryImageIntensity<unsigned char>(
-                    *images_color[j], warping_fields.value()[j],
-                    mesh.vertices_[i], camera, j, 2, image_boundary_margin);
+            if (warping_fields.has_value()) {
+                std::tie(valid, r_temp) = QueryImageIntensity<unsigned char>(
+                        *images_color[j], warping_fields.value()[j],
+                        mesh.vertices_[i], camera, j, 0, image_boundary_margin);
+                std::tie(valid, g_temp) = QueryImageIntensity<unsigned char>(
+                        *images_color[j], warping_fields.value()[j],
+                        mesh.vertices_[i], camera, j, 1, image_boundary_margin);
+                std::tie(valid, b_temp) = QueryImageIntensity<unsigned char>(
+                        *images_color[j], warping_fields.value()[j],
+                        mesh.vertices_[i], camera, j, 2, image_boundary_margin);
+            } else {
+                std::tie(valid, r_temp) = QueryImageIntensity<unsigned char>(
+                        *images_color[j], mesh.vertices_[i], camera, j, 0,
+                        image_boundary_margin);
+                std::tie(valid, g_temp) = QueryImageIntensity<unsigned char>(
+                        *images_color[j], mesh.vertices_[i], camera, j, 1,
+                        image_boundary_margin);
+                std::tie(valid, b_temp) = QueryImageIntensity<unsigned char>(
+                        *images_color[j], mesh.vertices_[i], camera, j, 2,
+                        image_boundary_margin);
+            }
             float r = (float)r_temp / 255.0f;
             float g = (float)g_temp / 255.0f;
             float b = (float)b_temp / 255.0f;

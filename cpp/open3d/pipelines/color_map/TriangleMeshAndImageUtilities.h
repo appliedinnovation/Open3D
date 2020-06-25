@@ -100,7 +100,7 @@ void SetProxyIntensityForVertex(
 
 void SetGeometryColorAverage(
         geometry::TriangleMesh& mesh,
-        const std::vector<std::shared_ptr<geometry::Image>>& images_rgbd,
+        const std::vector<std::shared_ptr<geometry::Image>>& images_color,
         const camera::PinholeCameraTrajectory& camera,
         const std::vector<std::vector<int>>& visibility_vertex_to_image,
         int image_boundary_margin = 10,
@@ -108,7 +108,7 @@ void SetGeometryColorAverage(
 
 void SetGeometryColorAverage(
         geometry::TriangleMesh& mesh,
-        const std::vector<std::shared_ptr<geometry::Image>>& images_rgbd,
+        const std::vector<std::shared_ptr<geometry::Image>>& images_color,
         const utility::optional<std::vector<ImageWarpingField>>& warping_fields,
         const camera::PinholeCameraTrajectory& camera,
         const std::vector<std::vector<int>>& visibility_vertex_to_image,
