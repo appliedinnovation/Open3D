@@ -196,7 +196,7 @@ std::tuple<bool, T> QueryImageIntensity(
 template <typename T>
 std::tuple<bool, T> QueryImageIntensity(
         const geometry::Image& img,
-        const utility::optional<ImageWarpingField>& field,
+        const utility::optional<ImageWarpingField>& optional_warping_field,
         const Eigen::Vector3d& V,
         const camera::PinholeCameraTrajectory& camera,
         int camid,
@@ -206,8 +206,9 @@ std::tuple<bool, T> QueryImageIntensity(
     std::tie(u, v, depth) = Project3DPointAndGetUVDepth(V, camera, camid);
     // TODO: check why we use the u, ve before warpping for TestImageBoundary.
     if (img.TestImageBoundary(u, v, image_boundary_margin)) {
-        if (field.has_value()) {
-            Eigen::Vector2d uv_shift = field.value().GetImageWarpingField(u, v);
+        if (optional_warping_field.has_value()) {
+            Eigen::Vector2d uv_shift =
+                    optional_warping_field.value().GetImageWarpingField(u, v);
             u = uv_shift(0);
             v = uv_shift(1);
         }

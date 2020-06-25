@@ -74,7 +74,7 @@ std::tuple<bool, T> QueryImageIntensity(
 template <typename T>
 std::tuple<bool, T> QueryImageIntensity(
         const geometry::Image& img,
-        const utility::optional<ImageWarpingField>& field,
+        const utility::optional<ImageWarpingField>& optional_warping_field,
         const Eigen::Vector3d& V,
         const camera::PinholeCameraTrajectory& camera,
         int camid,
