@@ -26,39 +26,43 @@
 
 #pragma once
 
-#include <Eigen/Core>
-#include <tuple>
+#include <memory>
 #include <vector>
 
-/// @cond
-namespace Eigen {
-
-typedef Eigen::Matrix<double, 14, 14> Matrix14d;
-typedef Eigen::Matrix<double, 14, 1> Vector14d;
-typedef Eigen::Matrix<int, 14, 1> Vector14i;
-
-}  // namespace Eigen
-/// @endcond
+#include "open3d/camera/PinholeCameraTrajectory.h"
+#include "open3d/geometry/Image.h"
+#include "open3d/geometry/RGBDImage.h"
+#include "open3d/geometry/TriangleMesh.h"
+#include "open3d/pipelines/color_map/NonRigidOptimizer.h"
+#include "open3d/pipelines/color_map/RigidOptimizer.h"
 
 namespace open3d {
 namespace pipelines {
 namespace color_map {
 
-/// Function to compute JTJ and Jtr
-/// Input: function pointer f and total number of rows of Jacobian matrix
-/// Output: JTJ, JTr, sum of r^2
-/// Note: this function is almost identical to the functions in
-/// Utility/Eigen.h/cpp, but this function takes additional multiplication
-/// pattern that can produce JTJ having hundreds of rows and columns.
-template <typename VecInTypeDouble,
-          typename VecInTypeInt,
-          typename MatOutType,
-          typename VecOutType>
-std::tuple<MatOutType, VecOutType, double> ComputeJTJandJTrNonRigid(
-        std::function<void(int, VecInTypeDouble &, double &, VecInTypeInt &)> f,
-        int iteration_num,
-        int nonrigidval,
-        bool verbose = true);
+class ColorMapOptimizer {
+public:
+    ColorMapOptimizer(const geometry::TriangleMesh& mesh,
+                      const std::vector<std::shared_ptr<geometry::RGBDImage>>&
+                              images_rgbd,
+                      const camera::PinholeCameraTrajectory& camera_trajectory);
+
+    void RunRigidOptimizer(const RigidOptimizerOption& option);
+
+    void RunNonRigidOptimizer(const NonRigidOptimizerOption& option);
+
+    std::shared_ptr<geometry::TriangleMesh> GetMesh() const { return mesh_; }
+
+protected:
+    std::shared_ptr<geometry::TriangleMesh> mesh_;
+    std::vector<std::shared_ptr<geometry::RGBDImage>> images_rgbd_;
+    std::shared_ptr<camera::PinholeCameraTrajectory> camera_trajectory_;
+    std::vector<std::shared_ptr<geometry::Image>> images_gray_;
+    std::vector<std::shared_ptr<geometry::Image>> images_dx_;
+    std::vector<std::shared_ptr<geometry::Image>> images_dy_;
+    std::vector<std::shared_ptr<geometry::Image>> images_color_;
+    std::vector<std::shared_ptr<geometry::Image>> images_depth_;
+};
 
 }  // namespace color_map
 }  // namespace pipelines

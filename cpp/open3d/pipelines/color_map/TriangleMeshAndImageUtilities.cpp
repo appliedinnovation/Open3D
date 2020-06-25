@@ -37,7 +37,7 @@ namespace open3d {
 namespace pipelines {
 namespace color_map {
 
-inline std::tuple<float, float, float> Project3DPointAndGetUVDepth(
+std::tuple<float, float, float> Project3DPointAndGetUVDepth(
         const Eigen::Vector3d X,
         const camera::PinholeCameraTrajectory& camera,
         int camid) {
@@ -51,6 +51,22 @@ inline std::tuple<float, float, float> Project3DPointAndGetUVDepth(
     float v = float((Vt(1) * f.second) / Vt(2) + p.second);
     float z = float(Vt(2));
     return std::make_tuple(u, v, z);
+}
+
+std::vector<std::shared_ptr<geometry::Image>> CreateDepthBoundaryMasks(
+        const std::vector<std::shared_ptr<geometry::Image>>& images_depth,
+        double depth_threshold_for_discontinuity_check,
+        double half_dilation_kernel_size_for_discontinuity_map) {
+    auto n_images = images_depth.size();
+    std::vector<std::shared_ptr<geometry::Image>> masks;
+    for (size_t i = 0; i < n_images; i++) {
+        utility::LogDebug("[MakeDepthMasks] geometry::Image {:d}/{:d}", i,
+                          n_images);
+        masks.push_back(images_depth[i]->CreateDepthBoundaryMask(
+                depth_threshold_for_discontinuity_check,
+                half_dilation_kernel_size_for_discontinuity_map));
+    }
+    return masks;
 }
 
 std::tuple<std::vector<std::vector<int>>, std::vector<std::vector<int>>>
@@ -327,7 +343,7 @@ void SetGeometryColorAverage(
 void SetGeometryColorAverage(
         geometry::TriangleMesh& mesh,
         const std::vector<std::shared_ptr<geometry::Image>>& images_color,
-        const std::vector<ImageWarpingField>& warping_fields,
+        const utility::optional<std::vector<ImageWarpingField>>& warping_fields,
         const camera::PinholeCameraTrajectory& camera,
         const std::vector<std::vector<int>>& visibility_vertex_to_image,
         int image_boundary_margin /*= 10*/,
@@ -349,14 +365,14 @@ void SetGeometryColorAverage(
             unsigned char r_temp, g_temp, b_temp;
             bool valid = false;
             std::tie(valid, r_temp) = QueryImageIntensity<unsigned char>(
-                    *images_color[j], warping_fields[j], mesh.vertices_[i],
-                    camera, j, 0, image_boundary_margin);
+                    *images_color[j], warping_fields.value()[j],
+                    mesh.vertices_[i], camera, j, 0, image_boundary_margin);
             std::tie(valid, g_temp) = QueryImageIntensity<unsigned char>(
-                    *images_color[j], warping_fields[j], mesh.vertices_[i],
-                    camera, j, 1, image_boundary_margin);
+                    *images_color[j], warping_fields.value()[j],
+                    mesh.vertices_[i], camera, j, 1, image_boundary_margin);
             std::tie(valid, b_temp) = QueryImageIntensity<unsigned char>(
-                    *images_color[j], warping_fields[j], mesh.vertices_[i],
-                    camera, j, 2, image_boundary_margin);
+                    *images_color[j], warping_fields.value()[j],
+                    mesh.vertices_[i], camera, j, 2, image_boundary_margin);
             float r = (float)r_temp / 255.0f;
             float g = (float)g_temp / 255.0f;
             float b = (float)b_temp / 255.0f;

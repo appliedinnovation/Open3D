@@ -34,6 +34,7 @@
 #include "open3d/geometry/RGBDImage.h"
 #include "open3d/geometry/TriangleMesh.h"
 #include "open3d/utility/Eigen.h"
+#include "open3d/utility/Optional.h"
 
 namespace open3d {
 namespace pipelines {
@@ -42,10 +43,15 @@ namespace color_map {
 class ImageWarpingField;
 class ColorMapOptimizationOption;
 
-inline std::tuple<float, float, float> Project3DPointAndGetUVDepth(
+std::tuple<float, float, float> Project3DPointAndGetUVDepth(
         const Eigen::Vector3d X,
         const camera::PinholeCameraTrajectory& camera,
         int camid);
+
+std::vector<std::shared_ptr<geometry::Image>> CreateDepthBoundaryMasks(
+        const std::vector<std::shared_ptr<geometry::Image>>& images_depth,
+        double depth_threshold_for_discontinuity_check,
+        double half_dilation_kernel_size_for_discontinuity_map);
 
 std::tuple<std::vector<std::vector<int>>, std::vector<std::vector<int>>>
 CreateVertexAndImageVisibility(
@@ -103,7 +109,7 @@ void SetGeometryColorAverage(
 void SetGeometryColorAverage(
         geometry::TriangleMesh& mesh,
         const std::vector<std::shared_ptr<geometry::Image>>& images_rgbd,
-        const std::vector<ImageWarpingField>& warping_fields,
+        const utility::optional<std::vector<ImageWarpingField>>& warping_fields,
         const camera::PinholeCameraTrajectory& camera,
         const std::vector<std::vector<int>>& visibility_vertex_to_image,
         int image_boundary_margin = 10,
