@@ -84,7 +84,7 @@ std::tuple<bool, T> QueryImageIntensity(
 void SetProxyIntensityForVertex(
         const geometry::TriangleMesh& mesh,
         const std::vector<std::shared_ptr<geometry::Image>>& images_gray,
-        const std::vector<ImageWarpingField>& warping_field,
+        const utility::optional<std::vector<ImageWarpingField>>& warping_fields,
         const camera::PinholeCameraTrajectory& camera,
         const std::vector<std::vector<int>>& visibility_vertex_to_image,
         std::vector<double>& proxy_intensity,
