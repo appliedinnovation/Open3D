@@ -71,16 +71,6 @@ std::tuple<bool, T> QueryImageIntensity(
         int ch = -1,
         int image_boundary_margin = 10);
 
-// template <typename T>
-// std::tuple<bool, T> QueryImageIntensity(
-//         const geometry::Image& img,
-//         const ImageWarpingField& field,
-//         const Eigen::Vector3d& V,
-//         const camera::PinholeCameraTrajectory& camera,
-//         int camid,
-//         int ch = -1,
-//         int image_boundary_margin = 10);
-
 template <typename T>
 std::tuple<bool, T> QueryImageIntensity(
         const geometry::Image& img,
