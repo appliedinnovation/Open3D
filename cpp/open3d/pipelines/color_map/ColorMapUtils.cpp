@@ -56,13 +56,11 @@ static std::tuple<bool, T> QueryImageIntensity(
         const geometry::Image& img,
         const utility::optional<ImageWarpingField>& optional_warping_field,
         const Eigen::Vector3d& V,
-        const camera::PinholeCameraTrajectory& camera_trajectory,
-        int camera_id,
+        const camera::PinholeCameraParameters& camera_parameter,
         int ch,
         int image_boundary_margin) {
     float u, v, depth;
-    std::tie(u, v, depth) = Project3DPointAndGetUVDepth(
-            V, camera_trajectory.parameters_[camera_id]);
+    std::tie(u, v, depth) = Project3DPointAndGetUVDepth(V, camera_parameter);
     // TODO: check why we use the u, ve before warpping for TestImageBoundary.
     if (img.TestImageBoundary(u, v, image_boundary_margin)) {
         if (optional_warping_field.has_value()) {
@@ -197,12 +195,13 @@ void SetProxyIntensityForVertex(
             if (warping_fields.has_value()) {
                 std::tie(valid, gray) = QueryImageIntensity<float>(
                         *images_gray[j], warping_fields.value()[j],
-                        mesh.vertices_[i], camera_trajectory, j, -1,
+                        mesh.vertices_[i], camera_trajectory.parameters_[j], -1,
                         image_boundary_margin);
             } else {
                 std::tie(valid, gray) = QueryImageIntensity<float>(
                         *images_gray[j], utility::nullopt, mesh.vertices_[i],
-                        camera_trajectory, j, -1, image_boundary_margin);
+                        camera_trajectory.parameters_[j], -1,
+                        image_boundary_margin);
             }
 
             if (valid) {
@@ -248,13 +247,13 @@ void SetGeometryColorAverage(
             }
             std::tie(valid, r_temp) = QueryImageIntensity<unsigned char>(
                     *images_color[j], optional_warping_field, mesh.vertices_[i],
-                    camera_trajectory, j, 0, image_boundary_margin);
+                    camera_trajectory.parameters_[j], 0, image_boundary_margin);
             std::tie(valid, g_temp) = QueryImageIntensity<unsigned char>(
                     *images_color[j], optional_warping_field, mesh.vertices_[i],
-                    camera_trajectory, j, 1, image_boundary_margin);
+                    camera_trajectory.parameters_[j], 1, image_boundary_margin);
             std::tie(valid, b_temp) = QueryImageIntensity<unsigned char>(
                     *images_color[j], optional_warping_field, mesh.vertices_[i],
-                    camera_trajectory, j, 2, image_boundary_margin);
+                    camera_trajectory.parameters_[j], 2, image_boundary_margin);
             float r = (float)r_temp / 255.0f;
             float g = (float)g_temp / 255.0f;
             float b = (float)b_temp / 255.0f;
