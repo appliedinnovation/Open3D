@@ -43,11 +43,6 @@ namespace color_map {
 class ImageWarpingField;
 class ColorMapOptimizationOption;
 
-std::tuple<float, float, float> Project3DPointAndGetUVDepth(
-        const Eigen::Vector3d X,
-        const camera::PinholeCameraTrajectory& camera_trajectory,
-        int camid);
-
 std::vector<std::shared_ptr<geometry::Image>> CreateDepthBoundaryMasks(
         const std::vector<std::shared_ptr<geometry::Image>>& images_depth,
         double depth_threshold_for_discontinuity_check,
@@ -61,16 +56,6 @@ CreateVertexAndImageVisibility(
         const camera::PinholeCameraTrajectory& camera_trajectory,
         double maximum_allowable_depth,
         double depth_threshold_for_visibility_check);
-
-template <typename T>
-std::tuple<bool, T> QueryImageIntensity(
-        const geometry::Image& img,
-        const utility::optional<ImageWarpingField>& optional_warping_field,
-        const Eigen::Vector3d& V,
-        const camera::PinholeCameraTrajectory& camera_trajectory,
-        int camid,
-        int ch,
-        int image_boundary_margin);
 
 void SetProxyIntensityForVertex(
         const geometry::TriangleMesh& mesh,

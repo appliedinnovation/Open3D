@@ -37,7 +37,7 @@ namespace open3d {
 namespace pipelines {
 namespace color_map {
 
-std::tuple<float, float, float> Project3DPointAndGetUVDepth(
+static std::tuple<float, float, float> Project3DPointAndGetUVDepth(
         const Eigen::Vector3d X,
         const camera::PinholeCameraTrajectory& camera_trajectory,
         int camid) {
@@ -51,6 +51,41 @@ std::tuple<float, float, float> Project3DPointAndGetUVDepth(
     float v = float((Vt(1) * f.second) / Vt(2) + p.second);
     float z = float(Vt(2));
     return std::make_tuple(u, v, z);
+}
+
+template <typename T>
+static std::tuple<bool, T> QueryImageIntensity(
+        const geometry::Image& img,
+        const utility::optional<ImageWarpingField>& optional_warping_field,
+        const Eigen::Vector3d& V,
+        const camera::PinholeCameraTrajectory& camera_trajectory,
+        int camid,
+        int ch,
+        int image_boundary_margin) {
+    float u, v, depth;
+    std::tie(u, v, depth) =
+            Project3DPointAndGetUVDepth(V, camera_trajectory, camid);
+    // TODO: check why we use the u, ve before warpping for TestImageBoundary.
+    if (img.TestImageBoundary(u, v, image_boundary_margin)) {
+        if (optional_warping_field.has_value()) {
+            Eigen::Vector2d uv_shift =
+                    optional_warping_field.value().GetImageWarpingField(u, v);
+            u = uv_shift(0);
+            v = uv_shift(1);
+        }
+        if (img.TestImageBoundary(u, v, image_boundary_margin)) {
+            int u_round = int(u);
+            int v_round = int(v);
+            if (ch == -1) {
+                return std::make_tuple(true,
+                                       *img.PointerAt<T>(u_round, v_round));
+            } else {
+                return std::make_tuple(true,
+                                       *img.PointerAt<T>(u_round, v_round, ch));
+            }
+        }
+    }
+    return std::make_tuple(false, 0);
 }
 
 std::vector<std::shared_ptr<geometry::Image>> CreateDepthBoundaryMasks(
@@ -137,41 +172,6 @@ CreateVertexAndImageVisibility(
 
     return std::make_tuple(visibility_vertex_to_image,
                            visibility_image_to_vertex);
-}
-
-template <typename T>
-std::tuple<bool, T> QueryImageIntensity(
-        const geometry::Image& img,
-        const utility::optional<ImageWarpingField>& optional_warping_field,
-        const Eigen::Vector3d& V,
-        const camera::PinholeCameraTrajectory& camera_trajectory,
-        int camid,
-        int ch,
-        int image_boundary_margin) {
-    float u, v, depth;
-    std::tie(u, v, depth) =
-            Project3DPointAndGetUVDepth(V, camera_trajectory, camid);
-    // TODO: check why we use the u, ve before warpping for TestImageBoundary.
-    if (img.TestImageBoundary(u, v, image_boundary_margin)) {
-        if (optional_warping_field.has_value()) {
-            Eigen::Vector2d uv_shift =
-                    optional_warping_field.value().GetImageWarpingField(u, v);
-            u = uv_shift(0);
-            v = uv_shift(1);
-        }
-        if (img.TestImageBoundary(u, v, image_boundary_margin)) {
-            int u_round = int(u);
-            int v_round = int(v);
-            if (ch == -1) {
-                return std::make_tuple(true,
-                                       *img.PointerAt<T>(u_round, v_round));
-            } else {
-                return std::make_tuple(true,
-                                       *img.PointerAt<T>(u_round, v_round, ch));
-            }
-        }
-    }
-    return std::make_tuple(false, 0);
 }
 
 void SetProxyIntensityForVertex(
