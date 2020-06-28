@@ -40,17 +40,29 @@ namespace open3d {
 namespace pipelines {
 namespace color_map {
 
+/// \brief Function for color mapping of reconstructed scenes via optimization.
+///
+/// This is implementation of following paper
+/// Q.-Y. Zhou and V. Koltun,
+/// Color Map Optimization for 3D Reconstruction with Consumer Depth Cameras,
+/// SIGGRAPH 2014.
 class ColorMapOptimizer {
 public:
+    /// \param mesh The input geometry mesh.
+    /// \param imgs_rgbd A list of RGBDImages seen by cameras.
+    /// \param camera_trajectory Cameras' parameters.
     ColorMapOptimizer(const geometry::TriangleMesh& mesh,
                       const std::vector<std::shared_ptr<geometry::RGBDImage>>&
                               images_rgbd,
                       const camera::PinholeCameraTrajectory& camera_trajectory);
 
+    /// Run rigid optimization.
     void RunRigidOptimizer(const RigidOptimizerOption& option);
 
+    /// Run non-rigid optimization.
     void RunNonRigidOptimizer(const NonRigidOptimizerOption& option);
 
+    /// Get optimized mesh, should be used after running optimizations.
     std::shared_ptr<geometry::TriangleMesh> GetMesh() const { return mesh_; }
 
 protected:
