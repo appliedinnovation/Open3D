@@ -40,12 +40,12 @@ namespace color_map {
 static std::tuple<float, float, float> Project3DPointAndGetUVDepth(
         const Eigen::Vector3d X,
         const camera::PinholeCameraTrajectory& camera_trajectory,
-        int camid) {
-    std::pair<double, double> f =
-            camera_trajectory.parameters_[camid].intrinsic_.GetFocalLength();
-    std::pair<double, double> p =
-            camera_trajectory.parameters_[camid].intrinsic_.GetPrincipalPoint();
-    Eigen::Vector4d Vt = camera_trajectory.parameters_[camid].extrinsic_ *
+        int camera_id) {
+    std::pair<double, double> f = camera_trajectory.parameters_[camera_id]
+                                          .intrinsic_.GetFocalLength();
+    std::pair<double, double> p = camera_trajectory.parameters_[camera_id]
+                                          .intrinsic_.GetPrincipalPoint();
+    Eigen::Vector4d Vt = camera_trajectory.parameters_[camera_id].extrinsic_ *
                          Eigen::Vector4d(X(0), X(1), X(2), 1);
     float u = float((Vt(0) * f.first) / Vt(2) + p.first);
     float v = float((Vt(1) * f.second) / Vt(2) + p.second);
@@ -59,12 +59,12 @@ static std::tuple<bool, T> QueryImageIntensity(
         const utility::optional<ImageWarpingField>& optional_warping_field,
         const Eigen::Vector3d& V,
         const camera::PinholeCameraTrajectory& camera_trajectory,
-        int camid,
+        int camera_id,
         int ch,
         int image_boundary_margin) {
     float u, v, depth;
     std::tie(u, v, depth) =
-            Project3DPointAndGetUVDepth(V, camera_trajectory, camid);
+            Project3DPointAndGetUVDepth(V, camera_trajectory, camera_id);
     // TODO: check why we use the u, ve before warpping for TestImageBoundary.
     if (img.TestImageBoundary(u, v, image_boundary_margin)) {
         if (optional_warping_field.has_value()) {
