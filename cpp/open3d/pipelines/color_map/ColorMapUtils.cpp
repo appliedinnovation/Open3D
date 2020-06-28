@@ -141,8 +141,7 @@ CreateVertexAndImageVisibility(
             // Check depth boundary mask. If a vertex is located at the boundary
             // of an object, its color will be highly diverse from different
             // viewing angles.
-            if (*images_mask[camera_id]->PointerAt<unsigned char>(u_d, v_d) ==
-                255) {
+            if (*images_mask[camera_id]->PointerAt<uint8_t>(u_d, v_d) == 255) {
                 continue;
             }
             // Check depth errors.
@@ -237,7 +236,7 @@ void SetGeometryColorAverage(
         for (size_t iter = 0; iter < visibility_vertex_to_image[i].size();
              iter++) {
             int j = visibility_vertex_to_image[i][iter];
-            unsigned char r_temp, g_temp, b_temp;
+            uint8_t r_temp, g_temp, b_temp;
             bool valid = false;
             utility::optional<ImageWarpingField> optional_warping_field;
             if (warping_fields.has_value()) {
@@ -245,13 +244,13 @@ void SetGeometryColorAverage(
             } else {
                 optional_warping_field = utility::nullopt;
             }
-            std::tie(valid, r_temp) = QueryImageIntensity<unsigned char>(
+            std::tie(valid, r_temp) = QueryImageIntensity<uint8_t>(
                     *images_color[j], optional_warping_field, mesh.vertices_[i],
                     camera_trajectory.parameters_[j], 0, image_boundary_margin);
-            std::tie(valid, g_temp) = QueryImageIntensity<unsigned char>(
+            std::tie(valid, g_temp) = QueryImageIntensity<uint8_t>(
                     *images_color[j], optional_warping_field, mesh.vertices_[i],
                     camera_trajectory.parameters_[j], 1, image_boundary_margin);
-            std::tie(valid, b_temp) = QueryImageIntensity<unsigned char>(
+            std::tie(valid, b_temp) = QueryImageIntensity<uint8_t>(
                     *images_color[j], optional_warping_field, mesh.vertices_[i],
                     camera_trajectory.parameters_[j], 2, image_boundary_margin);
             float r = (float)r_temp / 255.0f;
