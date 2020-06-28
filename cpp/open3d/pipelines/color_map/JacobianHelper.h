@@ -36,7 +36,6 @@
 /// @cond
 namespace Eigen {
 
-typedef Eigen::Matrix<double, 14, 14> Matrix14d;
 typedef Eigen::Matrix<double, 14, 1> Vector14d;
 typedef Eigen::Matrix<int, 14, 1> Vector14i;
 
