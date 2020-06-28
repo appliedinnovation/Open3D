@@ -29,13 +29,57 @@
 
 #include "open3d/pipelines/color_map/ColorMapUtils.h"
 #include "open3d/pipelines/color_map/ImageWarpingField.h"
-#include "open3d/pipelines/color_map/JacobianHelper.h"
 #include "open3d/pipelines/color_map/RigidOptimizer.h"
 #include "open3d/utility/Optional.h"
 
 namespace open3d {
 namespace pipelines {
 namespace color_map {
+
+/// Function to compute i-th row of J and r
+/// the vector form of J_r is basically 6x1 matrix, but it can be
+/// easily extendable to 6xn matrix.
+/// See RGBDOdometryJacobianFromHybridTerm for this case.
+static void ComputeJacobianAndResidualRigid(
+        int row,
+        Eigen::Vector6d& J_r,
+        double& r,
+        const geometry::TriangleMesh& mesh,
+        const std::vector<double>& proxy_intensity,
+        const std::shared_ptr<geometry::Image>& images_gray,
+        const std::shared_ptr<geometry::Image>& images_dx,
+        const std::shared_ptr<geometry::Image>& images_dy,
+        const Eigen::Matrix4d& intrinsic,
+        const Eigen::Matrix4d& extrinsic,
+        const std::vector<int>& visibility_image_to_vertex,
+        const int image_boundary_margin) {
+    J_r.setZero();
+    r = 0;
+    int vid = visibility_image_to_vertex[row];
+    Eigen::Vector3d x = mesh.vertices_[vid];
+    Eigen::Vector4d g = extrinsic * Eigen::Vector4d(x(0), x(1), x(2), 1);
+    Eigen::Vector4d uv = intrinsic * g;
+    double u = uv(0) / uv(2);
+    double v = uv(1) / uv(2);
+    if (!images_gray->TestImageBoundary(u, v, image_boundary_margin)) return;
+    bool valid;
+    double gray, dIdx, dIdy;
+    std::tie(valid, gray) = images_gray->FloatValueAt(u, v);
+    std::tie(valid, dIdx) = images_dx->FloatValueAt(u, v);
+    std::tie(valid, dIdy) = images_dy->FloatValueAt(u, v);
+    if (gray == -1.0) return;
+    double invz = 1. / g(2);
+    double v0 = dIdx * intrinsic(0, 0) * invz;
+    double v1 = dIdy * intrinsic(1, 1) * invz;
+    double v2 = -(v0 * g(0) + v1 * g(1)) * invz;
+    J_r(0) = (-g(2) * v1 + g(1) * v2);
+    J_r(1) = (g(2) * v0 - g(0) * v2);
+    J_r(2) = (-g(1) * v0 + g(0) * v1);
+    J_r(3) = v0;
+    J_r(4) = v1;
+    J_r(5) = v2;
+    r = (gray - proxy_intensity[vid]);
+}
 
 void RigidOptimizer::Run(const RigidOptimizerOption& option) {
     utility::LogDebug("[ColorMapOptimization] :: MakingMasks");
