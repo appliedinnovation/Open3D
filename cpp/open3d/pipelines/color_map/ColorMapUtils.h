@@ -33,15 +33,13 @@
 #include "open3d/geometry/Image.h"
 #include "open3d/geometry/RGBDImage.h"
 #include "open3d/geometry/TriangleMesh.h"
+#include "open3d/pipelines/color_map/ImageWarpingField.h"
 #include "open3d/utility/Eigen.h"
 #include "open3d/utility/Optional.h"
 
 namespace open3d {
 namespace pipelines {
 namespace color_map {
-
-class ImageWarpingField;
-class ColorMapOptimizationOption;
 
 std::vector<std::shared_ptr<geometry::Image>> CreateDepthBoundaryMasks(
         const std::vector<std::shared_ptr<geometry::Image>>& images_depth,
