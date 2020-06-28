@@ -224,8 +224,8 @@ void SetGeometryColorAverage(
         const utility::optional<std::vector<ImageWarpingField>>& warping_fields,
         const camera::PinholeCameraTrajectory& camera_trajectory,
         const std::vector<std::vector<int>>& visibility_vertex_to_image,
-        int image_boundary_margin /*= 10*/,
-        int invisible_vertex_color_knn /*= 3*/) {
+        int image_boundary_margin,
+        int invisible_vertex_color_knn) {
     size_t n_vertex = mesh.vertices_.size();
     mesh.vertex_colors_.clear();
     mesh.vertex_colors_.resize(n_vertex);
