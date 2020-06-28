@@ -39,14 +39,12 @@ namespace color_map {
 
 static std::tuple<float, float, float> Project3DPointAndGetUVDepth(
         const Eigen::Vector3d X,
-        const camera::PinholeCameraTrajectory& camera_trajectory,
-        int camera_id) {
-    std::pair<double, double> f = camera_trajectory.parameters_[camera_id]
-                                          .intrinsic_.GetFocalLength();
-    std::pair<double, double> p = camera_trajectory.parameters_[camera_id]
-                                          .intrinsic_.GetPrincipalPoint();
-    Eigen::Vector4d Vt = camera_trajectory.parameters_[camera_id].extrinsic_ *
-                         Eigen::Vector4d(X(0), X(1), X(2), 1);
+        const camera::PinholeCameraParameters& camera_parameter) {
+    std::pair<double, double> f = camera_parameter.intrinsic_.GetFocalLength();
+    std::pair<double, double> p =
+            camera_parameter.intrinsic_.GetPrincipalPoint();
+    Eigen::Vector4d Vt =
+            camera_parameter.extrinsic_ * Eigen::Vector4d(X(0), X(1), X(2), 1);
     float u = float((Vt(0) * f.first) / Vt(2) + p.first);
     float v = float((Vt(1) * f.second) / Vt(2) + p.second);
     float z = float(Vt(2));
@@ -63,8 +61,8 @@ static std::tuple<bool, T> QueryImageIntensity(
         int ch,
         int image_boundary_margin) {
     float u, v, depth;
-    std::tie(u, v, depth) =
-            Project3DPointAndGetUVDepth(V, camera_trajectory, camera_id);
+    std::tie(u, v, depth) = Project3DPointAndGetUVDepth(
+            V, camera_trajectory.parameters_[camera_id]);
     // TODO: check why we use the u, ve before warpping for TestImageBoundary.
     if (img.TestImageBoundary(u, v, image_boundary_margin)) {
         if (optional_warping_field.has_value()) {
@@ -129,7 +127,7 @@ CreateVertexAndImageVisibility(
             Eigen::Vector3d X = mesh.vertices_[vertex_id];
             float u, v, d;
             std::tie(u, v, d) = Project3DPointAndGetUVDepth(
-                    X, camera_trajectory, camera_id);
+                    X, camera_trajectory.parameters_[camera_id]);
             int u_d = int(round(u)), v_d = int(round(v));
             // Skip if vertex in image boundary.
             if (d < 0.0 ||
