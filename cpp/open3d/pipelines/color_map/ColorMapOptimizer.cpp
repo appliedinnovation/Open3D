@@ -51,6 +51,8 @@ ColorMapOptimizer::ColorMapOptimizer(
       images_rgbd_(images_rgbd),
       camera_trajectory_(std::make_shared<camera::PinholeCameraTrajectory>(
               camera_trajectory)) {
+    // images_gray_, images_dx_, images_dy_, images_color_, images_depth_
+    // remain unachanged through out the optimizations.
     utility::LogDebug("[ColorMapOptimization] :: CreateGradientImages");
     for (size_t i = 0; i < images_rgbd_.size(); i++) {
         auto gray_image = images_rgbd_[i]->color_.CreateFloatImage();
