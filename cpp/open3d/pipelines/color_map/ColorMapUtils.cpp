@@ -57,7 +57,7 @@ static std::tuple<bool, T> QueryImageIntensity(
         const utility::optional<ImageWarpingField>& optional_warping_field,
         const Eigen::Vector3d& V,
         const camera::PinholeCameraParameters& camera_parameter,
-        int ch,
+        int channel,
         int image_boundary_margin) {
     float u, v, depth;
     std::tie(u, v, depth) = Project3DPointAndGetUVDepth(V, camera_parameter);
@@ -72,12 +72,12 @@ static std::tuple<bool, T> QueryImageIntensity(
         if (img.TestImageBoundary(u, v, image_boundary_margin)) {
             int u_round = int(u);
             int v_round = int(v);
-            if (ch == -1) {
+            if (channel == -1) {
                 return std::make_tuple(true,
                                        *img.PointerAt<T>(u_round, v_round));
             } else {
-                return std::make_tuple(true,
-                                       *img.PointerAt<T>(u_round, v_round, ch));
+                return std::make_tuple(
+                        true, *img.PointerAt<T>(u_round, v_round, channel));
             }
         }
     }
