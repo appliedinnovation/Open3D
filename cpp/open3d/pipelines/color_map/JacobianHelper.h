@@ -102,7 +102,56 @@ std::tuple<MatOutType, VecOutType, double> ComputeJTJandJTrNonRigid(
         std::function<void(int, VecInTypeDouble&, double&, VecInTypeInt&)> f,
         int iteration_num,
         int nonrigidval,
-        bool verbose = true);
+        bool verbose /*=true*/) {
+    MatOutType JTJ(6 + nonrigidval, 6 + nonrigidval);
+    VecOutType JTr(6 + nonrigidval);
+    double r2_sum = 0.0;
+    JTJ.setZero();
+    JTr.setZero();
+#ifdef _OPENMP
+#pragma omp parallel
+    {
+#endif
+        MatOutType JTJ_private(6 + nonrigidval, 6 + nonrigidval);
+        VecOutType JTr_private(6 + nonrigidval);
+        double r2_sum_private = 0.0;
+        JTJ_private.setZero();
+        JTr_private.setZero();
+        VecInTypeDouble J_r;
+        VecInTypeInt pattern;
+        double r;
+#ifdef _OPENMP
+#pragma omp for nowait
+#endif
+        for (int i = 0; i < iteration_num; i++) {
+            f(i, J_r, r, pattern);
+            for (auto x = 0; x < J_r.size(); x++) {
+                for (auto y = 0; y < J_r.size(); y++) {
+                    JTJ_private(pattern(x), pattern(y)) += J_r(x) * J_r(y);
+                }
+            }
+            for (auto x = 0; x < J_r.size(); x++) {
+                JTr_private(pattern(x)) += r * J_r(x);
+            }
+            r2_sum_private += r * r;
+        }
+#ifdef _OPENMP
+#pragma omp critical
+        {
+#endif
+            JTJ += JTJ_private;
+            JTr += JTr_private;
+            r2_sum += r2_sum_private;
+#ifdef _OPENMP
+        }
+    }
+#endif
+    if (verbose) {
+        utility::LogDebug("Residual : {:.2e} (# of elements : {:d})",
+                          r2_sum / (double)iteration_num, iteration_num);
+    }
+    return std::make_tuple(std::move(JTJ), std::move(JTr), r2_sum);
+}
 
 }  // namespace color_map
 }  // namespace pipelines
